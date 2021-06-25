@@ -19,14 +19,20 @@ namespace TestArchiveFileCreation
             {
                 throw new FileNotFoundException($"Файл {fileToAdd} не найден. Архивация невозможна");
             }
+
+            FileInfo fileToAddInfo = new FileInfo(fileToAdd);
+            if (string.IsNullOrEmpty(archiveName))
+            {
+                archiveName = Path.ChangeExtension(fileToAddInfo.Name, "zip");
+            }
+
             using (MemoryStream zipStream = new MemoryStream())
             {
                 try
                 {
                     using (ZipArchive zip = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
                     {
-                        string name = fileToAdd.Split(@"\")?.LastOrDefault();
-                        zip.CreateEntryFromFile(fileToAdd, name, CompressionLevel.Optimal);
+                        zip.CreateEntryFromFile(fileToAdd, fileToAddInfo.Name, CompressionLevel.Optimal);
                     }
                 }
                 catch (Exception ex)
@@ -49,10 +55,9 @@ namespace TestArchiveFileCreation
 
                     for (byte b = 1; b <= partsCount; b++)
                     {
-                        string fullArchiveName = archiveName + (partsCount > 1 ? @$".00{b}" : "");                                          // Adds Suffix
+                        string fullArchiveName = archiveName + (partsCount > 1 ? @$".{b.ToString("D3")}" : "");                             // Adds Suffix
 
-                        fullArchiveName = string.IsNullOrEmpty(archiveDirectoryToSave) ? fullArchiveName :
-                                                                                         archiveDirectoryToSave + "\\" + fullArchiveName;   // Adds directory
+                        fullArchiveName = (string.IsNullOrEmpty(archiveDirectoryToSave) ? "" : archiveDirectoryToSave + "\\") + fullArchiveName;   // Adds directory
 
                         if (File.Exists(fullArchiveName))
                         {
